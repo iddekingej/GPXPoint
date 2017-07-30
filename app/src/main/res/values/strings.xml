@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">GPX Location</string>
+    <string name="lat">Latitude</string>
+    <string name="lon">Longitude</string>
+    <string name="height">Height</string>
+    <string name="Speed">Speed</string>
+    <string name="position">Position</string>
+    <string name="other">Other</string>
+    <string name="accuracy">Accuracy</string>
+    <string name="actions">Actions</string>
+    <string name="displayGPS">Display GPS position</string>
+    <string name="numSatellites"># Satellites</string>
+    <string name="warningGPSDisabled">Warning: GPS is disabled</string>
+    <string name="warningGPSTempUnavailable">Warning: GPS is temporarily unavailable</string>
+    <string name="warningGPSUnavailable">Warning: GPS is unavailable</string>
+</resources>
