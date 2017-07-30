@@ -1,0 +1,16 @@
+This is a very simple Android app that displays the GPS coordinates.
+It does only the following
+- Displays longitude and latitude
+- Displays speed, altitude and accuracy and number of satellites.
+
+This app doesn't require any internet connection.
+This app only uses the GPS as for the location.
+
+This app does NOT:
+- Display a map with a route.
+- Record a GPX trace
+
+Privacy:
+
+This app doesn't collect or store any information on the device or send any information to third
+party servers
