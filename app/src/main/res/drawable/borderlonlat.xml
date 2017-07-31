@@ -3,8 +3,8 @@
     <item>
         <shape
             android:shape="rectangle">
-            <stroke android:width="2dp" android:color="#FF0000BB" />
-            <solid android:color="#FFF" />
+            <stroke android:width="2dp" android:color="@color/sectionTitleLine" />
+            <solid android:color="@color/windowBackground" />
 
         </shape>
     </item>
@@ -12,7 +12,7 @@
     <item android:top="2dp" android:bottom="0dp">
         <shape
             android:shape="rectangle">
-            <solid android:color="#FFF" />
+            <solid android:color="@color/windowBackground" />
         </shape>
     </item>
 

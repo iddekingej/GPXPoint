@@ -1,11 +1,13 @@
 <resources>
-
+    <color name="windowBackground">#CCC</color>
+    <color name="sectionTitleLine">#FF0000BB</color>
     <!-- Base application theme. -->
     <style name="AppTheme" parent="ThemeOverlay.AppCompat.Light">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
     </style>
     <style name="lonLat" parent="android:Widget.TextView">
         <item name="android:textSize">20sp</item>

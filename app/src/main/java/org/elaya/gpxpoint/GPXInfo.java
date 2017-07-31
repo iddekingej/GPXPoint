@@ -1,6 +1,8 @@
 package org.elaya.gpxpoint;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 
 import android.content.SharedPreferences;
@@ -30,11 +32,12 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
     private TextView valueNumSatellites;
     private TextView gpsFixLabel;
     private TextView warningText;
-
     private Switch displayGPS;
     private LinearLayout gpsData;
     private RadioButton unitMeter;
     private SharedPreferences settings;
+    private Location lastLocation=null;
+    private String   otherText;
 
     private static final double METER_TO_FOOT = 3.2808399;
     private static final double METER_TO_MPH  = 3.6/1.609344;
@@ -88,6 +91,60 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.addGpsStatusListener(this);
+    }
+
+    /**
+     * Display a toast by String resource id
+     *
+     * @param pText Resource ID message
+     */
+    private void toast(int pText)
+    {
+        Toast lToast = Toast.makeText(getApplicationContext(),getResources().getString(pText) , Toast.LENGTH_LONG);
+        lToast.show();
+    }
+
+
+    /**
+     * Copy text to clipboard
+     *
+     * @param pLabel  Descriptive label (Is ID of string resource)
+     * @param pText   Text to copy to clipboard
+     */
+
+    private void copyToClipboard(int pLabel,String pText)
+    {
+        ClipboardManager lClipboard=(ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData lData=ClipData.newPlainText(getResources().getString(pLabel),pText);
+        lClipboard.setPrimaryClip(lData);
+    }
+
+
+    /**
+     * Copy coordinates to clipboard
+     *
+     * @param pView  unused. User clicked on this view
+     */
+    public void copyCoordinates(View pView)
+    {
+        if(lastLocation != null) {
+            copyToClipboard(R.string.locationClip,String.valueOf(lastLocation.getLongitude())+" "+String.valueOf(lastLocation.getLatitude()));
+            toast(R.string.coordinatesCopied);
+        }
+    }
+
+    /**
+     * Copy coordinates to clipboard
+     *
+     * @param pView  unused. User clicked on this view
+     */
+
+    public void copyOther(View pView)
+    {
+        if(otherText != ""){
+            copyToClipboard(R.string.otherClip,otherText);
+            toast(R.string.otherCopied);;
+        }
     }
 
     /**
@@ -165,6 +222,10 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
         warningText.setVisibility(View.GONE);
     }
 
+    private String makeText(int pLabel,String pValue){
+        return getResources().getString(pLabel)+" : "+pValue+" \n";
+    }
+
     /**
      * Displays information from the Location object
      *
@@ -189,6 +250,11 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
         valueAltitude.setText(lAltitude);
         valueSpeed.setText(lSpeed);
         valueAccuracy.setText(lAccuracy);
+        lastLocation=pLocation;
+        otherText=makeText(R.string.Speed,lSpeed)
+                 +makeText(R.string.altitude,lAltitude)
+                 +makeText(R.string.accuracy,lAccuracy)
+                 +makeText(R.string.numSatellites,valueNumSatellites.getText().toString());
     }
 
     /**
