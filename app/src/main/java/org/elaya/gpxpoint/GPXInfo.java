@@ -42,7 +42,7 @@ public class GPXInfo extends Activity implements LocationListener {
         setContentView(R.layout.activity_gpxinfo);
         valueLon = (TextView) findViewById(R.id.valueLon);
         valueLat = (TextView) findViewById(R.id.valueLat);
-        valueAltitude = (TextView) findViewById(R.id.valueHight);
+        valueAltitude = (TextView) findViewById(R.id.valueAltitude);
         valueSpeed = (TextView) findViewById(R.id.valueSpeed);
         valueAccuracy = (TextView) findViewById(R.id.valueAccuracy);
         gpsData = (LinearLayout) findViewById(R.id.gpsData);

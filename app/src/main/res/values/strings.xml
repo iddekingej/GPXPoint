@@ -2,7 +2,7 @@
     <string name="app_name">GPS Location</string>
     <string name="lat">Latitude</string>
     <string name="lon">Longitude</string>
-    <string name="height">Height</string>
+    <string name="altitude">Altitude</string>
     <string name="Speed">Speed</string>
     <string name="position">Position</string>
     <string name="other">Other</string>
