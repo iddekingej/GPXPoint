@@ -158,6 +158,9 @@ public class GPXInfo extends Activity implements LocationListener {
                     break;
                 case LocationProvider.AVAILABLE:
                     hideWarning();
+                    break;
+                default:
+                    //do nothing
             }
         }
         int lNumSatellites=pExtra.getInt("satellites",-1);
@@ -196,6 +199,10 @@ public class GPXInfo extends Activity implements LocationListener {
 
     }
 
+    /**
+     * Disable GPS when the activity pauses
+     */
+
     @Override
     protected void onPause()
     {
@@ -203,6 +210,9 @@ public class GPXInfo extends Activity implements LocationListener {
         locationManager.removeUpdates(this);
     }
 
+    /**
+     * When necessary start GPS when activity is resumed
+     */
     @Override
     protected void onResume()
     {
