@@ -20,4 +20,5 @@
     <string name="valueFoot">%f foot</string>
     <string name="valueKmh">%f km/h</string>
     <string name="valueMph">%f mph</string>
+    <string name="gpsFixMessage">Waiting for getting GPS fix</string>
 </resources>

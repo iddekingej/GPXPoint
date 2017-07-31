@@ -11,6 +11,13 @@
 
 
     <TextView
+        android:id="@+id/gpsFixLabel"
+        style="@style/gpsFixMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/gpsFixMessage" />
+
+    <TextView
         android:id="@+id/warningText"
         style="@style/warningLabel"
         android:layout_width="match_parent"
@@ -120,7 +127,8 @@
                     android:id="@+id/valueLon"
                     style="@style/lonLat"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textIsSelectable="true" />
             </TableRow>
 
             <TableRow
@@ -139,7 +147,8 @@
                     android:id="@+id/valueLat"
                     style="@style/lonLat"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textIsSelectable="true" />
             </TableRow>
 
         </TableLayout>

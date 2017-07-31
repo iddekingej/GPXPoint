@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import android.content.SharedPreferences;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -19,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class GPXInfo extends Activity implements LocationListener {
+public class GPXInfo extends Activity implements LocationListener , GpsStatus.Listener {
 
     private TextView valueLon;
     private TextView valueLat;
@@ -27,15 +28,17 @@ public class GPXInfo extends Activity implements LocationListener {
     private TextView valueSpeed;
     private TextView valueAccuracy;
     private TextView valueNumSatellites;
+    private TextView gpsFixLabel;
+    private TextView warningText;
+
     private Switch displayGPS;
     private LinearLayout gpsData;
-    private TextView warningText;
     private RadioButton unitMeter;
     private SharedPreferences settings;
 
     private static final double METER_TO_FOOT = 3.2808399;
-    private static final double METER_TO_MILE = 1609.344;
-    private static final double METER_TO_KM   = 3600;
+    private static final double METER_TO_MPH  = 3.6/1.609344;
+    private static final double METER_TO_KMH  = 3.6;
     private static final String PREF_MAIN     = "main";
     private static final String PREF_S_UNIT_METER = "unitmeter";
 
@@ -57,11 +60,13 @@ public class GPXInfo extends Activity implements LocationListener {
         valueAccuracy = (TextView) findViewById(R.id.valueAccuracy);
         gpsData = (LinearLayout) findViewById(R.id.gpsData);
         valueNumSatellites = (TextView) findViewById(R.id.valueNumSatellites);
-        warningText = (TextView) findViewById(R.id.warningText);
-        displayGPS = (Switch) findViewById(R.id.displayGPS);
-        unitMeter  = (RadioButton) findViewById(R.id.unitMeter);
+        warningText   = (TextView) findViewById(R.id.warningText);
+        displayGPS    = (Switch) findViewById(R.id.displayGPS);
+        unitMeter     = (RadioButton) findViewById(R.id.unitMeter);
+        gpsFixLabel    = (TextView) findViewById(R.id.gpsFixLabel);
         RadioButton unitFoot   = (RadioButton) findViewById(R.id.unitFoot);
         gpsData.setVisibility(View.GONE);
+        gpsFixLabel.setVisibility(View.GONE);
 
         settings = getSharedPreferences(PREF_MAIN, 0);
 
@@ -82,8 +87,12 @@ public class GPXInfo extends Activity implements LocationListener {
         });
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.addGpsStatusListener(this);
     }
 
+    /**
+     * Fill the GPS display with the last known location
+     */
     private void latestLocation()
     {
         Location lLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -92,18 +101,28 @@ public class GPXInfo extends Activity implements LocationListener {
         }
     }
 
+    /**
+     * Called for starting the GPS
+     */
+
     private void startGPS()
     {
         gpsData.setVisibility(View.VISIBLE);
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
-            latestLocation();
+
         } catch (Exception e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();
         }
     }
 
+    /**
+     * Called when a user changes unit type (meters to foots).
+     * The settings is saved and the display is refreshed.
+     *
+     * @param pRadio Radio button pressed. Not used
+     */
     public void toggleUnits(View pRadio)
     {
         SharedPreferences.Editor lEditor=settings.edit();
@@ -161,11 +180,11 @@ public class GPXInfo extends Activity implements LocationListener {
         if(unitMeter.isChecked()){
             lAltitude = getResources().getString(R.string.valueMeter,pLocation.getAltitude());
             lAccuracy = getResources().getString(R.string.valueMeter,pLocation.getAccuracy());
-            lSpeed    = getResources().getString(R.string.valueKmh,pLocation.getAccuracy() / METER_TO_KM);
+            lSpeed    = getResources().getString(R.string.valueKmh,pLocation.getSpeed()* METER_TO_KMH);
         } else {
             lAltitude=getResources().getString(R.string.valueFoot,pLocation.getAltitude() * METER_TO_FOOT);
             lAccuracy=getResources().getString(R.string.valueFoot,pLocation.getAccuracy() * METER_TO_FOOT);
-            lSpeed    = getResources().getString(R.string.valueMph,pLocation.getAccuracy() / METER_TO_MILE);
+            lSpeed    = getResources().getString(R.string.valueMph,pLocation.getSpeed() * METER_TO_MPH);
         }
         valueAltitude.setText(lAltitude);
         valueSpeed.setText(lSpeed);
@@ -181,6 +200,28 @@ public class GPXInfo extends Activity implements LocationListener {
     public void onLocationChanged(@NonNull Location pLocation)
     {
         setLocation(pLocation);
+    }
+
+    /**
+     * Checking for GPS status change. (from the GPSStatus.Listener interface)
+     * Used for displaying gps fix message
+     *
+     * @param pEvent Type of change event (Used to determine if there is a gps fix)
+     */
+    @Override
+    public void onGpsStatusChanged(int pEvent)
+    {
+        switch(pEvent){
+            case GpsStatus.GPS_EVENT_STARTED:
+                gpsFixLabel.setVisibility(View.VISIBLE);
+                break;
+            case GpsStatus.GPS_EVENT_FIRST_FIX:
+                gpsFixLabel.setVisibility(View.GONE);
+                break;
+            default:
+                //nothing
+        }
+
     }
 
     /**
