@@ -163,8 +163,8 @@ public class GPXInfo extends Activity implements LocationListener {
             lAccuracy = getResources().getString(R.string.valueMeter,pLocation.getAccuracy());
             lSpeed    = getResources().getString(R.string.valueKmh,pLocation.getAccuracy() / METER_TO_KM);
         } else {
-            lAltitude=getResources().getString(R.string.valueFoot,pLocation.getAltitude() / METER_TO_FOOT);
-            lAccuracy=getResources().getString(R.string.valueFoot,pLocation.getAccuracy() / METER_TO_FOOT);
+            lAltitude=getResources().getString(R.string.valueFoot,pLocation.getAltitude() * METER_TO_FOOT);
+            lAccuracy=getResources().getString(R.string.valueFoot,pLocation.getAccuracy() * METER_TO_FOOT);
             lSpeed    = getResources().getString(R.string.valueMph,pLocation.getAccuracy() / METER_TO_MILE);
         }
         valueAltitude.setText(lAltitude);
