@@ -3,6 +3,7 @@ package org.elaya.gpxpoint;
 import android.app.Activity;
 import android.content.Context;
 
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +30,14 @@ public class GPXInfo extends Activity implements LocationListener {
     private Switch displayGPS;
     private LinearLayout gpsData;
     private TextView warningText;
+    private RadioButton unitMeter;
+    private SharedPreferences settings;
+
+    private static final double METER_TO_FOOT = 3.2808399;
+    private static final double METER_TO_MILE = 1609.344;
+    private static final double METER_TO_KM   = 3600;
+    private static final String PREF_MAIN     = "main";
+    private static final String PREF_S_UNIT_METER = "unitmeter";
 
     private LocationManager locationManager;
 
@@ -49,7 +59,20 @@ public class GPXInfo extends Activity implements LocationListener {
         valueNumSatellites = (TextView) findViewById(R.id.valueNumSatellites);
         warningText = (TextView) findViewById(R.id.warningText);
         displayGPS = (Switch) findViewById(R.id.displayGPS);
+        unitMeter  = (RadioButton) findViewById(R.id.unitMeter);
+        RadioButton unitFoot   = (RadioButton) findViewById(R.id.unitFoot);
         gpsData.setVisibility(View.GONE);
+
+        settings = getSharedPreferences(PREF_MAIN, 0);
+
+        boolean lUnitMeter = settings.getBoolean(PREF_S_UNIT_METER, true);
+
+        if(lUnitMeter) {
+            unitMeter.toggle();
+        } else {
+            unitFoot.toggle();
+        }
+
         hideWarning();
 
         displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -61,20 +84,32 @@ public class GPXInfo extends Activity implements LocationListener {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
     }
 
+    private void latestLocation()
+    {
+        Location lLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (lLocation != null) {
+            setLocation(lLocation);
+        }
+    }
+
     private void startGPS()
     {
         gpsData.setVisibility(View.VISIBLE);
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
-
-            Location lLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (lLocation != null) {
-                setLocation(lLocation);
-            }
+            latestLocation();
         } catch (Exception e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();
         }
+    }
+
+    public void toggleUnits(View pRadio)
+    {
+        SharedPreferences.Editor lEditor=settings.edit();
+        lEditor.putBoolean(PREF_S_UNIT_METER,unitMeter.isChecked());
+        lEditor.apply();
+        latestLocation();
     }
 
     /**
@@ -120,9 +155,21 @@ public class GPXInfo extends Activity implements LocationListener {
     {
         valueLon.setText(String.valueOf(pLocation.getLongitude()));
         valueLat.setText(String.valueOf(pLocation.getLatitude()));
-        valueAltitude.setText(String.valueOf(pLocation.getAltitude()));
-        valueSpeed.setText(String.valueOf(pLocation.getSpeed()*3.6));
-        valueAccuracy.setText(String.valueOf(pLocation.getAccuracy()));
+        String lAltitude;
+        String lAccuracy;
+        String lSpeed;
+        if(unitMeter.isChecked()){
+            lAltitude = getResources().getString(R.string.valueMeter,pLocation.getAltitude());
+            lAccuracy = getResources().getString(R.string.valueMeter,pLocation.getAccuracy());
+            lSpeed    = getResources().getString(R.string.valueKmh,pLocation.getAccuracy() / METER_TO_KM);
+        } else {
+            lAltitude=getResources().getString(R.string.valueFoot,pLocation.getAltitude() / METER_TO_FOOT);
+            lAccuracy=getResources().getString(R.string.valueFoot,pLocation.getAccuracy() / METER_TO_FOOT);
+            lSpeed    = getResources().getString(R.string.valueMph,pLocation.getAccuracy() / METER_TO_MILE);
+        }
+        valueAltitude.setText(lAltitude);
+        valueSpeed.setText(lSpeed);
+        valueAccuracy.setText(lAccuracy);
     }
 
     /**

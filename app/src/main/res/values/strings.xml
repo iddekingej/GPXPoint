@@ -13,4 +13,11 @@
     <string name="warningGPSDisabled">Warning: GPS is disabled</string>
     <string name="warningGPSTempUnavailable">Warning: GPS is temporarily unavailable</string>
     <string name="warningGPSUnavailable">Warning: GPS is unavailable</string>
+    <string name="units">Units</string>
+    <string name="unitEurope">Meters</string>
+    <string name="unitUk">Miles/Foot</string>
+    <string name="valueMeter">%f meter</string>
+    <string name="valueFoot">%f foot</string>
+    <string name="valueKmh">%f km/h</string>
+    <string name="valueMph">%f mph</string>
 </resources>

@@ -25,21 +25,64 @@
         tools:layout_editor_absoluteX="-20dp"
         tools:layout_editor_absoluteY="-9dp" />
 
-    <LinearLayout
+    <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:background="@drawable/borderlonlat"
-        android:orientation="vertical">
+        android:background="@drawable/borderlonlat">
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/displayGPS" />
 
             <Switch
                 android:id="@+id/displayGPS"
+                style="@android:style/Widget.TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:switchPadding="3dp"
-                android:text="@string/displayGPS" />
-    </LinearLayout>
+                android:switchPadding="3dp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/units" />
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="3dp"
+                android:paddingRight="0dp"
+                >
+
+                <RadioButton
+                    android:id="@+id/unitMeter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="toggleUnits"
+                    android:text="@string/unitEurope" />
+
+                <RadioButton
+                    android:id="@+id/unitFoot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="toggleUnits"
+                    android:text="@string/unitUk" />
+            </RadioGroup>
+        </TableRow>
+
+    </TableLayout>
 
 
     <LinearLayout
