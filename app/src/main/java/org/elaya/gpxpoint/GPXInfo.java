@@ -1,18 +1,25 @@
 package org.elaya.gpxpoint;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.GnssStatus;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -22,7 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class GPXInfo extends Activity implements LocationListener , GpsStatus.Listener {
+public class GPXInfo extends Activity implements LocationListener{
 
     private TextView valueLon;
     private TextView valueLat;
@@ -51,6 +58,8 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
      * Setup window/activity
      * @param savedInstanceState Saved state , not used
      */
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +97,87 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
                 GPXInfo.this.toggleDisplayGPS();
             }
         });
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationManager.addGpsStatusListener(this);
+        if (Build.VERSION.SDK_INT >= 23) {
+            runtimePermission();
+        } else {
+            setupStatusListener();
+        }
+    }
+
+    @RequiresApi(23)
+    private void runtimePermission(){
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+        } else {
+            setupStatusListener();
+        }
+
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults){
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            setupStatusListener();
+        } else {
+            toast("Permission not granted");
+        }
+
+    }
+    @RequiresApi(24)
+    private void initGNSS() throws SecurityException{
+        GnssStatus.Callback lListener=new GnssStatus.Callback(){
+            public void onFirstFix(int pTtffMillis) {
+                gpsFixed();
+            }
+
+            public void onStarted()
+            {
+                gpsFixed();
+            }
+        };
+        locationManager.registerGnssStatusCallback(lListener);
+    }
+
+    private void setupStatusListener()
+    {
+
+        try {
+            if (Build.VERSION.SDK_INT >= 24) {
+                initGNSS();
+            } else {
+                initGPSStatus();
+            }
+        } catch(SecurityException e){
+            toast(e.getMessage());
+        }
+    }
+
+    @SuppressWarnings( "deprecation" )
+    private void initGPSStatus() throws SecurityException{
+        GpsStatus.Listener lListener=new GpsStatus.Listener(){
+
+            public void onGpsStatusChanged(int pEvent){
+                switch(pEvent){
+                    case GpsStatus.GPS_EVENT_STARTED:
+                        gpsFixingStarted();
+                        break;
+                    case GpsStatus.GPS_EVENT_FIRST_FIX:
+                        gpsFixed();
+                        break;
+                    default:
+                        //nothing
+                }
+            }
+
+        } ;
+        locationManager.addGpsStatusListener(lListener);
+
+    }
+
+    private void toast(String pText)
+    {
+        Toast lToast = Toast.makeText(getApplicationContext(),pText , Toast.LENGTH_LONG);
+        lToast.show();
     }
 
     /**
@@ -100,8 +187,7 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
      */
     private void toast(int pText)
     {
-        Toast lToast = Toast.makeText(getApplicationContext(),getResources().getString(pText) , Toast.LENGTH_LONG);
-        lToast.show();
+        toast(getResources().getString(pText));
     }
 
 
@@ -141,16 +227,17 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
 
     public void copyOther(View pView)
     {
-        if(otherText != ""){
+        if(! "".equals(otherText)){
             copyToClipboard(R.string.otherClip,otherText);
-            toast(R.string.otherCopied);;
+            toast(R.string.otherCopied);
         }
     }
 
     /**
      * Fill the GPS display with the last known location
+     * TODO Check Exception handling callers
      */
-    private void latestLocation()
+    private void latestLocation() throws SecurityException
     {
         Location lLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if (lLocation != null) {
@@ -160,9 +247,10 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
 
     /**
      * Called for starting the GPS
+     * * TODO Check Exception handling callers
      */
 
-    private void startGPS()
+    private void startGPS() throws SecurityException
     {
         gpsData.setVisibility(View.VISIBLE);
         try {
@@ -257,6 +345,17 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
                  +makeText(R.string.numSatellites,valueNumSatellites.getText().toString());
     }
 
+    private void gpsFixingStarted()
+    {
+        gpsFixLabel.setVisibility(View.VISIBLE);
+    }
+
+    private void gpsFixed()
+    {
+        gpsFixLabel.setVisibility(View.GONE);
+    }
+
+
     /**
      * When  the location is changed this callback function is called.
      *
@@ -268,27 +367,7 @@ public class GPXInfo extends Activity implements LocationListener , GpsStatus.Li
         setLocation(pLocation);
     }
 
-    /**
-     * Checking for GPS status change. (from the GPSStatus.Listener interface)
-     * Used for displaying gps fix message
-     *
-     * @param pEvent Type of change event (Used to determine if there is a gps fix)
-     */
-    @Override
-    public void onGpsStatusChanged(int pEvent)
-    {
-        switch(pEvent){
-            case GpsStatus.GPS_EVENT_STARTED:
-                gpsFixLabel.setVisibility(View.VISIBLE);
-                break;
-            case GpsStatus.GPS_EVENT_FIRST_FIX:
-                gpsFixLabel.setVisibility(View.GONE);
-                break;
-            default:
-                //nothing
-        }
 
-    }
 
     /**
      * When status of the GPS is changed.
