@@ -29,7 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class GPXInfo extends Activity implements LocationListener{
+public class GPSInfo extends Activity implements LocationListener{
 
     private TextView valueLon;
     private TextView valueLat;
@@ -65,7 +65,7 @@ public class GPXInfo extends Activity implements LocationListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gpxinfo);
-        valueLon = (TextView) findViewById(R.id.valueLon);
+        valueLon = (TextView)findViewById(R.id.valueLon);
         valueLat = (TextView) findViewById(R.id.valueLat);
         valueAltitude = (TextView) findViewById(R.id.valueAltitude);
         valueSpeed = (TextView) findViewById(R.id.valueSpeed);
@@ -94,7 +94,7 @@ public class GPXInfo extends Activity implements LocationListener{
 
         displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                GPXInfo.this.toggleDisplayGPS();
+                GPSInfo.this.toggleDisplayGPS();
             }
         });
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -211,7 +211,7 @@ public class GPXInfo extends Activity implements LocationListener{
      *
      * @param pView  unused. User clicked on this view
      */
-    public void copyCoordinates(View pView)
+    public void copyCoordinates(@SuppressWarnings("unused") View pView)
     {
         if(lastLocation != null) {
             copyToClipboard(R.string.locationClip,String.valueOf(lastLocation.getLongitude())+" "+String.valueOf(lastLocation.getLatitude()));

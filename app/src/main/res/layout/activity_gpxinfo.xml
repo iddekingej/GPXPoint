@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_vertical"
     android:orientation="vertical"
     android:padding="4dp"
-    tools:context="org.elaya.gpxpoint.GPXInfo">
+    tools:context="org.elaya.gpxpoint.GPSInfo">
 
 
     <ScrollView
@@ -79,8 +78,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="0dp">
+                        android:paddingStart="3dp"
+                        android:paddingEnd="0dp">
 
                         <RadioButton
                             android:id="@+id/unitMeter"
@@ -116,7 +115,7 @@
                         style="@style/sectionLabel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|left"
+                        android:layout_gravity="bottom|start"
                         android:layout_weight="1"
                         android:text="@string/position" />
 
@@ -126,10 +125,11 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:clickable="true"
-                        android:layout_marginRight="10dp"
+                        android:layout_marginEnd="10dp"
                         android:onClick="copyCoordinates"
                         android:scaleX="2"
                         android:scaleY="2"
+                        android:contentDescription="@string/coordinatesCopied"
                         android:src="?android:attr/actionModeCopyDrawable" />
 
                 </LinearLayout>
@@ -201,10 +201,11 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:clickable="true"
-                        android:layout_marginRight="10dp"
+                        android:layout_marginEnd="10dp"
                         android:onClick="copyOther"
                         android:scaleX="2"
                         android:scaleY="2"
+                        android:contentDescription="@string/otherCopied"
                         android:src="?android:attr/actionModeCopyDrawable" />
 
                 </LinearLayout>
