@@ -25,4 +25,7 @@
     <string name="otherClip">Other GPS data</string>
     <string name="coordinatesCopied">Coordinates copied to the clipboard</string>
     <string name="otherCopied">Other information copied to the clipboard</string>
+    <string name="close">Close</string>
+    <string name="help">Help</string>
+
 </resources>

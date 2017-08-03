@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GnssStatus;
@@ -115,7 +116,7 @@ public class GPSInfo extends Activity implements LocationListener{
 
     }
 
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults){
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
         } else {
@@ -430,6 +431,15 @@ public class GPSInfo extends Activity implements LocationListener{
             hideWarning();
         }
 
+    }
+
+    public void openHelp(View pView){
+        try {
+            Intent lHelpIntent = new Intent(this, HelpActivity.class);
+            startActivity(lHelpIntent);
+        }catch(Exception e){
+            toast(e.getMessage());
+        }
     }
 
     /**
