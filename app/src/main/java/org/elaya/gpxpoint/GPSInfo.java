@@ -120,7 +120,7 @@ public class GPSInfo extends Activity implements LocationListener{
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
         } else {
-            toast("Permission not granted");
+            displayWarning(R.string.locationAuth);
         }
 
     }
@@ -215,7 +215,7 @@ public class GPSInfo extends Activity implements LocationListener{
     public void copyCoordinates(@SuppressWarnings("unused") View pView)
     {
         if(lastLocation != null) {
-            copyToClipboard(R.string.locationClip,String.valueOf(lastLocation.getLongitude())+" "+String.valueOf(lastLocation.getLatitude()));
+            copyToClipboard(R.string.locationClip,String.valueOf(lastLocation.getLatitude())+" "+String.valueOf(lastLocation.getLongitude()));
             toast(R.string.coordinatesCopied);
         }
     }
@@ -257,6 +257,8 @@ public class GPSInfo extends Activity implements LocationListener{
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
 
+        } catch(SecurityException e){
+            displayWarning(R.string.locationAuth);
         } catch (Exception e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();

@@ -162,14 +162,14 @@
                         android:layout_height="match_parent">
 
                         <TextView
-                            android:id="@+id/textView2"
+                            android:id="@+id/textView4"
                             style="@style/lonLat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/lon" />
+                            android:text="@string/lat" />
 
                         <TextView
-                            android:id="@+id/valueLon"
+                            android:id="@+id/valueLat"
                             style="@style/lonLat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -182,14 +182,14 @@
                         android:layout_height="match_parent">
 
                         <TextView
-                            android:id="@+id/textView4"
+                            android:id="@+id/textView2"
                             style="@style/lonLat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/lat" />
+                            android:text="@string/lon" />
 
                         <TextView
-                            android:id="@+id/valueLat"
+                            android:id="@+id/valueLon"
                             style="@style/lonLat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -245,7 +245,8 @@
                         <TextView
                             android:id="@+id/valueSpeed"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true" />
                     </TableRow>
 
                     <TableRow
@@ -262,7 +263,8 @@
                         <TextView
                             android:id="@+id/valueAltitude"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true" />
 
                     </TableRow>
 
@@ -280,7 +282,8 @@
                         <TextView
                             android:id="@+id/valueAccuracy"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true" />
 
                     </TableRow>
 
@@ -298,7 +301,8 @@
                         <TextView
                             android:id="@+id/valueNumSatellites"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true" />
                     </TableRow>
 
                 </TableLayout>
