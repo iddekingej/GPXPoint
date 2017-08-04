@@ -29,6 +29,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * Main window that displays the GPS information
+ *
+ */
 
 public class GPSInfo extends Activity implements LocationListener{
 
@@ -55,16 +59,12 @@ public class GPSInfo extends Activity implements LocationListener{
 
     private LocationManager locationManager;
 
-    /**
-     * Setup window/activity
-     * @param savedInstanceState Saved state , not used
-     */
 
 
     /**
      * Initialize GUI
      *
-     * @param savedInstanceState
+     * @param savedInstanceState  Saved information (not used)
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,7 +143,8 @@ public class GPSInfo extends Activity implements LocationListener{
     /**
      *  Initialize the GPS status listener for api level<24
      * This listener checks when GPS started and when there is a GPS Fix
-     * @throws SecurityException
+     *
+     * @throws SecurityException When the app has not runtime rights to use the location service.
      */
     @RequiresApi(24)
     private void initGNSS() throws SecurityException{
@@ -184,7 +185,7 @@ public class GPSInfo extends Activity implements LocationListener{
      * Initialize the GPS status listener for api level<24
      * This listener checks when GPS started and when there is a GPS Fix
      *
-     * @throws SecurityException
+     * @throws SecurityException When the app has not runtime rights to use the location service.
      */
     @SuppressWarnings( "deprecation" )
     private void initGPSStatus() throws SecurityException{

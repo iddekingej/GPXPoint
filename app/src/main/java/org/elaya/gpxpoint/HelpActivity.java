@@ -6,7 +6,7 @@ import android.view.View;
 import android.webkit.WebView;
 
 /**
- * This activity displayes a help page.
+ * This activity displays a help page.
  */
 
 public class HelpActivity extends Activity {
@@ -17,7 +17,7 @@ public class HelpActivity extends Activity {
      * The help page is displayed in a WebView.
      * Set the location of the help page
      *
-     * @param savedInstanceState
+     * @param savedInstanceState Not used.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
