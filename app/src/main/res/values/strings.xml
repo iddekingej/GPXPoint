@@ -28,4 +28,5 @@
     <string name="close">Close</string>
     <string name="help">Help</string>
     <string name="locationAuth">App not authorized to access location, please enable it:Settings-&gt;Apps-&gt;GPS location-&gt;Permissions</string>
+    <string name="helpButton">&#160;\?</string>
 </resources>

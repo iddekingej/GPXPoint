@@ -33,6 +33,7 @@
                 android:layout_height="wrap_content" />
 
             <LinearLayout
+                style="@style/helpLabel"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
@@ -40,7 +41,7 @@
                 <TextView
                     android:id="@+id/textView13"
                     style="@style/sectionLabel"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/actions"
@@ -54,7 +55,7 @@
                     android:layout_marginEnd="10dp"
                     android:clickable="true"
                     android:onClick="openHelp"
-                    android:text=" \?" />
+                    android:text="@string/helpButton" />
             </LinearLayout>
 
             <TableLayout
