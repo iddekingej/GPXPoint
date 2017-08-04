@@ -61,7 +61,11 @@ public class GPSInfo extends Activity implements LocationListener{
      */
 
 
-
+    /**
+     * Initialize GUI
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +110,10 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
+    /**
+     * For API >23, check for runtime permission.
+     *
+     */
     @RequiresApi(23)
     private void runtimePermission(){
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
@@ -116,6 +124,13 @@ public class GPSInfo extends Activity implements LocationListener{
 
     }
 
+    /**
+     * Event call back when requestPermission is executed
+     *
+     * @param requestCode   Request code
+     * @param permissions   Information over permission that are granted or refused.
+     * @param grantResults  Information over grant result.
+     */
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
@@ -124,6 +139,12 @@ public class GPSInfo extends Activity implements LocationListener{
         }
 
     }
+
+    /**
+     *  Initialize the GPS status listener for api level<24
+     * This listener checks when GPS started and when there is a GPS Fix
+     * @throws SecurityException
+     */
     @RequiresApi(24)
     private void initGNSS() throws SecurityException{
         GnssStatus.Callback lListener=new GnssStatus.Callback(){
@@ -139,6 +160,12 @@ public class GPSInfo extends Activity implements LocationListener{
         locationManager.registerGnssStatusCallback(lListener);
     }
 
+
+    /**
+     * Initialize the GPS status listener.
+     * Depending on the api level, the GNSS listener is used (API>=24) or else the GPSStatus is used
+     * This listener checks when GPS started and when there is a GPS Fix
+     */
     private void setupStatusListener()
     {
 
@@ -153,6 +180,12 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
+    /**
+     * Initialize the GPS status listener for api level<24
+     * This listener checks when GPS started and when there is a GPS Fix
+     *
+     * @throws SecurityException
+     */
     @SuppressWarnings( "deprecation" )
     private void initGPSStatus() throws SecurityException{
         GpsStatus.Listener lListener=new GpsStatus.Listener(){
@@ -175,6 +208,11 @@ public class GPSInfo extends Activity implements LocationListener{
 
     }
 
+    /**
+     * Display play a toast message
+     *
+     * @param pText Text to display
+     */
     private void toast(String pText)
     {
         Toast lToast = Toast.makeText(getApplicationContext(),pText , Toast.LENGTH_LONG);
@@ -435,6 +473,13 @@ public class GPSInfo extends Activity implements LocationListener{
 
     }
 
+
+    /**
+     * Open a new activity that displays help information.
+     * This page is activated by clikking the "?"  symbol.
+     *
+     * @param pView Not used
+     */
     public void openHelp(View pView){
         try {
             Intent lHelpIntent = new Intent(this, HelpActivity.class);
