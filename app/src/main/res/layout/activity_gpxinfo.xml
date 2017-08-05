@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -41,21 +42,25 @@
                 <TextView
                     android:id="@+id/textView13"
                     style="@style/sectionLabel"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/actions"
                     tools:layout_editor_absoluteX="-20dp"
                     tools:layout_editor_absoluteY="-9dp" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/help"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
                     android:clickable="true"
+                    android:contentDescription="@string/help"
                     android:onClick="openHelp"
-                    android:text="@string/helpButton" />
+                    android:scaleX="3"
+                    android:scaleY="3"
+                    android:src="@drawable/help" />
             </LinearLayout>
 
             <TableLayout
@@ -137,17 +142,17 @@
                         android:text="@string/position" />
 
                     <ImageView
-                        android:id="@+id/imageButton"
+                        android:id="@+id/copyLocation"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
                         android:layout_weight="1"
                         android:clickable="true"
-                        android:layout_marginEnd="10dp"
-                        android:onClick="copyCoordinates"
-                        android:scaleX="2"
-                        android:scaleY="2"
                         android:contentDescription="@string/coordinatesCopied"
-                        android:src="?android:attr/actionModeCopyDrawable" />
+                        android:onClick="copyCoordinates"
+                        android:scaleX="3"
+                        android:scaleY="3"
+                        android:src="@drawable/copyicon" />
 
                 </LinearLayout>
 
@@ -216,14 +221,14 @@
                         android:id="@+id/copyOther"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
                         android:layout_weight="1"
                         android:clickable="true"
-                        android:layout_marginEnd="10dp"
-                        android:onClick="copyOther"
-                        android:scaleX="2"
-                        android:scaleY="2"
                         android:contentDescription="@string/otherCopied"
-                        android:src="?android:attr/actionModeCopyDrawable" />
+                        android:onClick="copyOther"
+                        android:scaleX="3"
+                        android:scaleY="3"
+                        android:src="@drawable/copyicon" />
 
                 </LinearLayout>
 

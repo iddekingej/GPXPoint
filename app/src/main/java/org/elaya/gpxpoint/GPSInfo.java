@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GnssStatus;
+import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -152,7 +153,9 @@ public class GPSInfo extends Activity implements LocationListener{
             public void onFirstFix(int pTtffMillis) {
                 gpsFixed();
             }
-
+            public void onSatelliteStatusChanged(GnssStatus pStatus){
+                    numberOfSatellites(pStatus.getSatelliteCount());
+            }
             public void onStarted()
             {
                 gpsFixed();
@@ -161,6 +164,15 @@ public class GPSInfo extends Activity implements LocationListener{
         locationManager.registerGnssStatusCallback(lListener);
     }
 
+    /**
+     * When the number of satellites changes, this function is called.
+     * The number is updated in the GUI.
+     *
+     * @param pNum Number of satellites used in the fix.
+     */
+    private void numberOfSatellites(int pNum){
+        valueNumSatellites.setText(String.valueOf(pNum));
+    }
 
     /**
      * Initialize the GPS status listener.
@@ -182,6 +194,26 @@ public class GPSInfo extends Activity implements LocationListener{
     }
 
     /**
+     * GPSStatus returns a list of satellites. This function counts
+     * how many of those satellites are used in the fix.
+     * This function is only used when the depracted GpsStatus is used (<API 23)
+     *
+     * @param pStatellites
+     * @return    number of satellites
+     */
+    @SuppressWarnings( "deprecation" )
+    private int getFixedSatellites(Iterable<GpsSatellite> pStatellites)
+    {
+        int lFixed=0;
+        for(GpsSatellite lSatellite : pStatellites){
+            if(lSatellite.usedInFix()){
+                lFixed++;
+            }
+        }
+        return lFixed;
+    }
+
+    /**
      * Initialize the GPS status listener for api level<24
      * This listener checks when GPS started and when there is a GPS Fix
      *
@@ -198,6 +230,14 @@ public class GPSInfo extends Activity implements LocationListener{
                         break;
                     case GpsStatus.GPS_EVENT_FIRST_FIX:
                         gpsFixed();
+                        break;
+                    case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                        try {
+                            GpsStatus lStatus = locationManager.getGpsStatus(null);
+                            numberOfSatellites(getFixedSatellites(lStatus.getSatellites()));
+                        }catch(SecurityException e){
+                            //Do nothing from now
+                        }
                         break;
                     default:
                         //nothing
@@ -387,8 +427,12 @@ public class GPSInfo extends Activity implements LocationListener{
                  +makeText(R.string.numSatellites,valueNumSatellites.getText().toString());
     }
 
+    /**
+     * Called when GPS tries to get a fix on the satellites
+     */
     private void gpsFixingStarted()
     {
+        valueNumSatellites.setText("-");
         gpsFixLabel.setVisibility(View.VISIBLE);
     }
 
@@ -438,13 +482,6 @@ public class GPSInfo extends Activity implements LocationListener{
                     //do nothing
             }
         }
-        int lNumSatellites=pExtra.getInt("satellites",-1);
-        if(lNumSatellites>0) {
-            valueNumSatellites.setText(String.valueOf(lNumSatellites));
-        } else {
-            valueNumSatellites.setText("-");
-        }
-
     }
 
     /**
