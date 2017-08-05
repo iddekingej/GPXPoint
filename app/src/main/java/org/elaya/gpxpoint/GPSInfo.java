@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -118,7 +117,7 @@ public class GPSInfo extends Activity implements LocationListener{
     @RequiresApi(23)
     private void runtimePermission(){
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             setupStatusListener();
         }
@@ -194,18 +193,19 @@ public class GPSInfo extends Activity implements LocationListener{
     }
 
     /**
-     * GPSStatus returns a list of satellites. This function counts
+     * GPSStatus returns a list of satellites. GetFixedSatellites counts
      * how many of those satellites are used in the fix.
-     * This function is only used when the depracted GpsStatus is used (<API 23)
+     * This function is only used when the depreciated GpsStatus is used (<API 23)
      *
-     * @param pStatellites
-     * @return    number of satellites
+     * @param pSatellites  List of satellites used in this function
+     * @return    number of satellites in pStatellites
      */
     @SuppressWarnings( "deprecation" )
-    private int getFixedSatellites(Iterable<GpsSatellite> pStatellites)
+    private int getFixedSatellites(Iterable<GpsSatellite> pSatellites)
     {
         int lFixed=0;
-        for(GpsSatellite lSatellite : pStatellites){
+
+        for(GpsSatellite lSatellite : pSatellites){
             if(lSatellite.usedInFix()){
                 lFixed++;
             }
