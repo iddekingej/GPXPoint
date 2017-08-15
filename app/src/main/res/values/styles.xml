@@ -30,7 +30,7 @@
         <item name="android:padding">3dp</item>
     </style>
 
-    <!-- Bengine message on top of the screen about GPS status -->
+    <!-- Benigne message on top of the screen about GPS status -->
 
     <style name="gpsFixMessage" parent="android:Widget.TextView">
         <item name="android:textColor">#FFF</item>

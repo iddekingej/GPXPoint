@@ -50,6 +50,7 @@ public class GPSInfo extends Activity implements LocationListener{
     private SharedPreferences settings;
     private Location lastLocation=null;
     private String   otherText;
+    private int      status=0;
 
     private static final double METER_TO_FOOT = 3.2808399;
     private static final double METER_TO_MPH  = 3.6/1.609344;
@@ -59,7 +60,33 @@ public class GPSInfo extends Activity implements LocationListener{
 
     private LocationManager locationManager;
 
+    /**
+     * No warning message is displayed
+     */
+    private static final int ST_OK=0;
 
+    /**
+     * Status displays a messages that the user has no rights
+     */
+    private static final int ST_RIGHTS=1;
+
+    /**
+     * Status displays a message that the GPS is disabled
+     */
+
+    private static final int ST_DISABLED=2;
+
+    /**
+     * Status displays a message that the GPS is unavailable
+     */
+
+    private static final int ST_UNAVAILABLE=3;
+
+    /**
+     * Status displays a message that the GPS is temp unavailable
+     */
+
+    private static final int ST_TEMP_UNAVAILABLE=4;
 
     /**
      * Initialize GUI
@@ -110,6 +137,29 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
+    private void setStatus(int p_code)
+    {
+        switch(p_code){
+            case ST_OK:
+                hideWarning();;
+                break;
+            case ST_RIGHTS:
+                displayWarning(R.string.locationAuth);
+                break;
+            case ST_DISABLED:
+                displayWarning(R.string.warningGPSDisabled);
+                break;
+            case ST_UNAVAILABLE:
+                displayWarning(R.string.warningGPSUnavailable);
+                break;
+            case ST_TEMP_UNAVAILABLE:
+                displayWarning(R.string.warningGPSTempUnavailable);
+                break;
+
+        }
+        status=p_code;
+    }
+
     /**
      * For API >23, check for runtime permission.
      *
@@ -135,7 +185,7 @@ public class GPSInfo extends Activity implements LocationListener{
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
         } else {
-            displayWarning(R.string.locationAuth);
+            setStatus(ST_RIGHTS);
         }
 
     }
@@ -337,7 +387,7 @@ public class GPSInfo extends Activity implements LocationListener{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
 
         } catch(SecurityException e){
-            displayWarning(R.string.locationAuth);
+            setStatus(ST_RIGHTS);
         } catch (Exception e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();
@@ -469,14 +519,17 @@ public class GPSInfo extends Activity implements LocationListener{
     {
         if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
             switch(pStatus){
+
                 case LocationProvider.TEMPORARILY_UNAVAILABLE:
-                    displayWarning(R.string.warningGPSTempUnavailable);
+                    setStatus(ST_TEMP_UNAVAILABLE);
                     break;
+
                 case LocationProvider.OUT_OF_SERVICE:
-                    displayWarning(R.string.warningGPSUnavailable);
+                    setStatus(ST_UNAVAILABLE);
                     break;
+
                 case LocationProvider.AVAILABLE:
-                    hideWarning();
+                    setStatus(ST_OK);
                     break;
                 default:
                     //do nothing
@@ -495,6 +548,7 @@ public class GPSInfo extends Activity implements LocationListener{
     {
         if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
             displayWarning(R.string.warningGPSDisabled);
+            setStatus(ST_DISABLED);
         }
     }
 
@@ -506,7 +560,7 @@ public class GPSInfo extends Activity implements LocationListener{
     @Override
     public void onProviderEnabled(String pProvider) {
         if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
-            hideWarning();
+            setStatus(ST_OK);
         }
 
     }
@@ -546,6 +600,11 @@ public class GPSInfo extends Activity implements LocationListener{
     {
         super.onResume();
         if (displayGPS.isChecked()) {
+            if(status==ST_DISABLED) {
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    setStatus(ST_OK);
+                }
+            }
             startGPS();
         }
     }
