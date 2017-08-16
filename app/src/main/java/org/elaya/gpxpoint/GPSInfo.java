@@ -141,7 +141,7 @@ public class GPSInfo extends Activity implements LocationListener{
     {
         switch(p_code){
             case ST_OK:
-                hideWarning();;
+                hideWarning();
                 break;
             case ST_RIGHTS:
                 displayWarning(R.string.locationAuth);
@@ -363,19 +363,7 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
-    /**
-     * Fill the GPS display with the last known location
-     * TODO Check Exception handling callers
-     */
-    private void latestLocation() throws SecurityException
-    {
-        Location lLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (lLocation != null) {
-            setLocation(lLocation);
-        }
-    }
-
-    /**
+     /**
      * Called for starting the GPS
      * * TODO Check Exception handling callers
      */
@@ -405,7 +393,9 @@ public class GPSInfo extends Activity implements LocationListener{
         SharedPreferences.Editor lEditor=settings.edit();
         lEditor.putBoolean(PREF_S_UNIT_METER,unitMeter.isChecked());
         lEditor.apply();
-        latestLocation();
+        if(lastLocation != null){
+            setLocation(lastLocation);
+        }
     }
 
     /**
