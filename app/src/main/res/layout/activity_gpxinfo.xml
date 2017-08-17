@@ -26,6 +26,28 @@
                 android:layout_height="wrap_content"
                 android:text="@string/gpsFixMessage" />
 
+            <LinearLayout
+                android:id="@+id/permissionWarning"
+                style="@style/warningLabel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/locationAuth" />
+
+                <Button
+                    android:id="@+id/button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/permission" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/warningText"
                 style="@style/warningLabel"
@@ -33,7 +55,6 @@
                 android:layout_height="wrap_content" />
 
             <LinearLayout
-                style="@style/helpLabel"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">

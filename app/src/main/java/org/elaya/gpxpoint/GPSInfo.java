@@ -49,6 +49,7 @@ public class GPSInfo extends Activity implements LocationListener{
     private RadioButton unitMeter;
     private SharedPreferences settings;
     private Location lastLocation=null;
+    private LinearLayout permissionWarning;
     private String   otherText;
     private int      status=0;
 
@@ -65,10 +66,6 @@ public class GPSInfo extends Activity implements LocationListener{
      */
     private static final int ST_OK=0;
 
-    /**
-     * Status displays a messages that the user has no rights
-     */
-    private static final int ST_RIGHTS=1;
 
     /**
      * Status displays a message that the GPS is disabled
@@ -97,20 +94,23 @@ public class GPSInfo extends Activity implements LocationListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gpxinfo);
-        valueLon = (TextView)findViewById(R.id.valueLon);
-        valueLat = (TextView) findViewById(R.id.valueLat);
-        valueAltitude = (TextView) findViewById(R.id.valueAltitude);
-        valueSpeed = (TextView) findViewById(R.id.valueSpeed);
-        valueAccuracy = (TextView) findViewById(R.id.valueAccuracy);
-        gpsData = (LinearLayout) findViewById(R.id.gpsData);
-        valueNumSatellites = (TextView) findViewById(R.id.valueNumSatellites);
-        warningText   = (TextView) findViewById(R.id.warningText);
-        displayGPS    = (Switch) findViewById(R.id.displayGPS);
-        unitMeter     = (RadioButton) findViewById(R.id.unitMeter);
-        gpsFixLabel    = (TextView) findViewById(R.id.gpsFixLabel);
-        RadioButton unitFoot   = (RadioButton) findViewById(R.id.unitFoot);
+        valueLon             = (TextView)findViewById(R.id.valueLon);
+        valueLat             = (TextView) findViewById(R.id.valueLat);
+        valueAltitude        = (TextView) findViewById(R.id.valueAltitude);
+        valueSpeed           = (TextView) findViewById(R.id.valueSpeed);
+        valueAccuracy        = (TextView) findViewById(R.id.valueAccuracy);
+        gpsData              = (LinearLayout) findViewById(R.id.gpsData);
+        valueNumSatellites   = (TextView) findViewById(R.id.valueNumSatellites);
+        warningText          = (TextView) findViewById(R.id.warningText);
+        displayGPS           = (Switch) findViewById(R.id.displayGPS);
+        unitMeter            = (RadioButton) findViewById(R.id.unitMeter);
+        gpsFixLabel          = (TextView) findViewById(R.id.gpsFixLabel);
+        permissionWarning    = (LinearLayout) findViewById(R.id.permissionWarning);
+        RadioButton unitFoot = (RadioButton) findViewById(R.id.unitFoot);
+
         gpsData.setVisibility(View.GONE);
         gpsFixLabel.setVisibility(View.GONE);
+        displayPermissionWarning(false);
 
         settings = getSharedPreferences(PREF_MAIN, 0);
 
@@ -137,21 +137,30 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
+    private void displayPermissionWarning(boolean pFlag)
+    {
+        if(pFlag) {
+            permissionWarning.setVisibility(View.VISIBLE);
+        }else {
+            permissionWarning.setVisibility(View.GONE);
+        }
+    }
+
     private void setStatus(int p_code)
     {
         switch(p_code){
             case ST_OK:
                 hideWarning();
                 break;
-            case ST_RIGHTS:
-                displayWarning(R.string.locationAuth);
-                break;
+
             case ST_DISABLED:
                 displayWarning(R.string.warningGPSDisabled);
                 break;
+
             case ST_UNAVAILABLE:
                 displayWarning(R.string.warningGPSUnavailable);
                 break;
+
             case ST_TEMP_UNAVAILABLE:
                 displayWarning(R.string.warningGPSTempUnavailable);
                 break;
@@ -160,18 +169,31 @@ public class GPSInfo extends Activity implements LocationListener{
         status=p_code;
     }
 
+
+
+    @RequiresApi(23)
+    private boolean hasRuntimeGPSPermission()
+    {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
     /**
      * For API >23, check for runtime permission.
      *
      */
     @RequiresApi(23)
     private void runtimePermission(){
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if(!hasRuntimeGPSPermission()){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             setupStatusListener();
         }
 
+    }
+
+    @RequiresApi(23)
+    public void askPermission(View pButton){
+        runtimePermission();
     }
 
     /**
@@ -184,8 +206,10 @@ public class GPSInfo extends Activity implements LocationListener{
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
+            displayPermissionWarning(false);
+
         } else {
-            setStatus(ST_RIGHTS);
+            displayPermissionWarning(true);
         }
 
     }
@@ -375,7 +399,7 @@ public class GPSInfo extends Activity implements LocationListener{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
 
         } catch(SecurityException e){
-            setStatus(ST_RIGHTS);
+            displayPermissionWarning(true);
         } catch (Exception e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();
@@ -589,6 +613,11 @@ public class GPSInfo extends Activity implements LocationListener{
     protected void onResume()
     {
         super.onResume();
+        if (Build.VERSION.SDK_INT >= 23) {
+            if(!hasRuntimeGPSPermission()){
+                displayPermissionWarning(true);
+            }
+        }
         if (displayGPS.isChecked()) {
             if(status==ST_DISABLED) {
                 if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
