@@ -432,6 +432,7 @@ public class GPSInfo extends Activity implements LocationListener{
             startGPS();
         } else {
             gpsData.setVisibility(View.GONE);
+            gpsFixLabel.setVisibility(View.GONE);
             locationManager.removeUpdates(this);
         }
     }
@@ -613,17 +614,15 @@ public class GPSInfo extends Activity implements LocationListener{
     protected void onResume()
     {
         super.onResume();
-        if (Build.VERSION.SDK_INT >= 23) {
+        if(Build.VERSION.SDK_INT >= 23) {
             if(!hasRuntimeGPSPermission()){
                 displayPermissionWarning(true);
             }
         }
-        if (displayGPS.isChecked()) {
-            if(status==ST_DISABLED) {
+        if (displayGPS.isChecked() && (status==ST_DISABLED)){
                 if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     setStatus(ST_OK);
                 }
-            }
             startGPS();
         }
     }
