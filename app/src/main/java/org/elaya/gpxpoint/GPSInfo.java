@@ -2,10 +2,12 @@ package org.elaya.gpxpoint;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GnssStatus;
@@ -51,6 +53,7 @@ public class GPSInfo extends Activity implements LocationListener{
     private Location lastLocation=null;
     private LinearLayout permissionWarning;
     private String   otherText;
+    private BroadcastReceiver gpsStatus;
     private int      status=0;
 
     private static final double METER_TO_FOOT = 3.2808399;
@@ -108,6 +111,9 @@ public class GPSInfo extends Activity implements LocationListener{
         permissionWarning    = (LinearLayout) findViewById(R.id.permissionWarning);
         RadioButton unitFoot = (RadioButton) findViewById(R.id.unitFoot);
 
+
+
+
         gpsData.setVisibility(View.GONE);
         gpsFixLabel.setVisibility(View.GONE);
         displayPermissionWarning(false);
@@ -122,7 +128,22 @@ public class GPSInfo extends Activity implements LocationListener{
             unitFoot.toggle();
         }
 
+
         hideWarning();
+
+        gpsStatus = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (intent.getAction().matches("android.location.PROVIDERS_CHANGED")) {
+                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                        setStatus(ST_OK);
+                    } else {
+                        setStatus(ST_DISABLED);
+                    }                }
+            }
+        };
+
 
         displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -135,6 +156,17 @@ public class GPSInfo extends Activity implements LocationListener{
         } else {
             setupStatusListener();
         }
+        enableStatusListener();
+    }
+
+    private void enableStatusListener()
+    {
+        registerReceiver(gpsStatus, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+    }
+
+    private void disableStatusListener()
+    {
+        unregisterReceiver(gpsStatus);
     }
 
     private void displayPermissionWarning(boolean pFlag)
@@ -529,6 +561,7 @@ public class GPSInfo extends Activity implements LocationListener{
      * @param pStatus     Status (Availability)
      * @param pExtra      Extra information(used for getting the number of satellites) .
      */
+
     @Override
     public void onStatusChanged(String pProvider,int pStatus,Bundle pExtra)
     {
@@ -605,6 +638,7 @@ public class GPSInfo extends Activity implements LocationListener{
     {
         super.onPause();
         locationManager.removeUpdates(this);
+        disableStatusListener();
     }
 
     /**
@@ -614,15 +648,21 @@ public class GPSInfo extends Activity implements LocationListener{
     protected void onResume()
     {
         super.onResume();
+        enableStatusListener();
         if(Build.VERSION.SDK_INT >= 23) {
             if(!hasRuntimeGPSPermission()){
                 displayPermissionWarning(true);
             }
         }
-        if (displayGPS.isChecked() && (status==ST_DISABLED)){
-                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    setStatus(ST_OK);
-                }
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            setStatus(ST_OK);
+        } else {
+            setStatus(ST_DISABLED);
+        }
+
+        if (displayGPS.isChecked()){
+
             startGPS();
         }
     }
