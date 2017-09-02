@@ -17,12 +17,18 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -31,12 +37,14 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Date;
+
 /**
  * Main window that displays the GPS information
  *
  */
 
-public class GPSInfo extends Activity implements LocationListener{
+public class GPSInfo extends AppCompatActivity implements LocationListener{
 
     private TextView valueLon;
     private TextView valueLat;
@@ -54,7 +62,8 @@ public class GPSInfo extends Activity implements LocationListener{
     private LinearLayout permissionWarning;
     private String   otherText;
     private BroadcastReceiver gpsStatus;
-    private int      status=0;
+    private LinearLayout notCurrent;
+    private TextView lastTime;
 
     private static final double METER_TO_FOOT = 3.2808399;
     private static final double METER_TO_MPH  = 3.6/1.609344;
@@ -110,12 +119,17 @@ public class GPSInfo extends Activity implements LocationListener{
         gpsFixLabel          = (TextView) findViewById(R.id.gpsFixLabel);
         permissionWarning    = (LinearLayout) findViewById(R.id.permissionWarning);
         RadioButton unitFoot = (RadioButton) findViewById(R.id.unitFoot);
+        notCurrent           = (LinearLayout) findViewById(R.id.notCurrent);
+        lastTime             = (TextView) findViewById(R.id.lastTime);
 
-
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
 
         gpsData.setVisibility(View.GONE);
         gpsFixLabel.setVisibility(View.GONE);
+        notCurrent.setVisibility(View.GONE);
+
         displayPermissionWarning(false);
 
         settings = getSharedPreferences(PREF_MAIN, 0);
@@ -147,7 +161,7 @@ public class GPSInfo extends Activity implements LocationListener{
 
         displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                GPSInfo.this.toggleDisplayGPS();
+                toggleDisplayGPS();
             }
         });
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -157,6 +171,79 @@ public class GPSInfo extends Activity implements LocationListener{
             setupStatusListener();
         }
         enableStatusListener();
+    }
+
+    public void gotoMaps()
+    {
+        if(lastLocation == null){
+            toast(R.string.location_unknown);
+            return;
+        }
+        Uri lLocationUri=Uri.parse("geo:"+String.valueOf(lastLocation.getLatitude())+","+String.valueOf(lastLocation.getLongitude()));
+        Intent lMap=new Intent(Intent.ACTION_VIEW,lLocationUri);
+        lMap.setPackage("com.google.android.apps.maps");
+        if(lMap.resolveActivity(getPackageManager())!= null){
+            startActivity(lMap);
+        } else {
+            toast(R.string.googleMapNotFound);
+            return;
+        }
+    }
+
+    public void shareData()
+    {
+        if(lastLocation==null){
+            toast(R.string.location_unknown);
+            return;
+        }
+        Intent lShareIntent=new Intent();
+        lShareIntent.setAction(Intent.ACTION_SEND);
+
+        String lSendText;
+
+            lSendText =
+                    getResources().getString(R.string.lat) + ":" + String.valueOf(lastLocation.getLatitude())
+                            + "\n" + getResources().getString(R.string.lon) + ":" + String.valueOf(lastLocation.getLongitude())
+                            + "\n\n" + otherText;
+
+        lShareIntent.putExtra(Intent.EXTRA_TEXT,lSendText);
+        lShareIntent.setType("text/plain");
+        startActivity(lShareIntent);
+    }
+
+    /**
+     * Open a new activity that displays help information.
+     * This page is activated by clikking the "?"  symbol.
+     *
+     */
+    public void openHelp(){
+        try {
+            Intent lHelpIntent = new Intent(this, HelpActivity.class);
+            startActivity(lHelpIntent);
+        }catch(Exception e){
+            toast(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem pItem) {
+        switch (pItem.getItemId()) {
+            case R.id.map:
+                gotoMaps();
+                break;
+
+            case R.id.share:
+                shareData();
+                break;
+
+            case R.id.help:
+                openHelp();
+                break;
+
+            default:
+                return super.onOptionsItemSelected(pItem);
+        }
+        return true;
     }
 
     private void enableStatusListener()
@@ -198,7 +285,6 @@ public class GPSInfo extends Activity implements LocationListener{
                 break;
 
         }
-        status=p_code;
     }
 
 
@@ -400,7 +486,7 @@ public class GPSInfo extends Activity implements LocationListener{
     public void copyCoordinates(@SuppressWarnings("unused") View pView)
     {
         if(lastLocation != null) {
-            copyToClipboard(R.string.locationClip,String.valueOf(lastLocation.getLatitude())+" "+String.valueOf(lastLocation.getLongitude()));
+            copyToClipboard(R.string.locationClip,getLocationText());
             toast(R.string.coordinatesCopied);
         }
     }
@@ -417,6 +503,12 @@ public class GPSInfo extends Activity implements LocationListener{
             copyToClipboard(R.string.otherClip,otherText);
             toast(R.string.otherCopied);
         }
+    }
+
+
+    private String getLocationText()
+    {
+        return String.valueOf(lastLocation.getLatitude())+" "+String.valueOf(lastLocation.getLongitude());
     }
 
      /**
@@ -461,10 +553,19 @@ public class GPSInfo extends Activity implements LocationListener{
      */
     private void toggleDisplayGPS() {
         if (displayGPS.isChecked()) {
+            notCurrent.setVisibility(View.GONE);
             startGPS();
         } else {
-            gpsData.setVisibility(View.GONE);
-            gpsFixLabel.setVisibility(View.GONE);
+            if(lastLocation != null){
+                notCurrent.setVisibility(View.VISIBLE);
+                String lDate= DateFormat.getTimeFormat(this).format(new Date());
+                lastTime.setText(lDate);
+            } else {
+                notCurrent.setVisibility(View.GONE);
+                gpsData.setVisibility(View.GONE);
+                gpsFixLabel.setVisibility(View.GONE);
+            }
+
             locationManager.removeUpdates(this);
         }
     }
@@ -585,6 +686,20 @@ public class GPSInfo extends Activity implements LocationListener{
         }
     }
 
+
+    /**
+     * Set the toolbar option menu
+     *
+     * @param pMenu Toolbar menu
+     * @return If handled
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu pMenu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, pMenu);
+        return super.onCreateOptionsMenu(pMenu);
+    }
+
     /**
      * When the GPS is disabled this callback is called. In the method a warning is displayed that the
      * GPS is disabled
@@ -614,20 +729,7 @@ public class GPSInfo extends Activity implements LocationListener{
     }
 
 
-    /**
-     * Open a new activity that displays help information.
-     * This page is activated by clikking the "?"  symbol.
-     *
-     * @param pView Not used
-     */
-    public void openHelp(View pView){
-        try {
-            Intent lHelpIntent = new Intent(this, HelpActivity.class);
-            startActivity(lHelpIntent);
-        }catch(Exception e){
-            toast(e.getMessage());
-        }
-    }
+
 
     /**
      * Disable GPS when the activity pauses

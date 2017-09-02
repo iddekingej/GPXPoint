@@ -29,4 +29,9 @@
     <string name="help">Help</string>
     <string name="locationAuth">App not authorized to access location.</string>
     <string name="permission">Permission</string>
+    <string name="share">Share</string>
+    <string name="location_unknown">No location fix yet</string>
+    <string name="not_current">Warning:not current location. Location is from:</string>
+    <string name="googleMap">Google map</string>
+    <string name="googleMapNotFound">Google map application not found</string>
 </resources>
