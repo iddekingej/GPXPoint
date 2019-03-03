@@ -1,24 +1,20 @@
 apply plugin: 'com.android.application'
 
-allprojects {
-    repositories {
-        jcenter()
-        maven {
-            url "https://maven.google.com"
-        }
-    }
-}
+
+
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "25.0.0"
+
+    dataBinding.enabled = true
+
+    compileSdkVersion 28
     defaultConfig {
         applicationId "org.elaya.gpslocation"
-        minSdkVersion 17
-        targetSdkVersion 26
-        versionCode 8
-        versionName "0.1.8"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion 23
+        targetSdkVersion 28
+        versionCode 10
+        versionName "0.1.10"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -29,12 +25,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:26.0.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:26.0.2'
-    testCompile 'junit:junit:4.12'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'androidx.test.espresso:espresso-core:3.1.2-alpha01'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha02'
+    testImplementation 'junit:junit:4.12'
 }

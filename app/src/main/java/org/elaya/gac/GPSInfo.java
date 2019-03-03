@@ -1,41 +1,37 @@
-package org.elaya.gpxpoint;
+package org.elaya.gac;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.GnssStatus;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
+
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import org.elaya.gac.databinding.ActivityGpxinfoBinding;
 
 import java.util.Date;
 
@@ -44,58 +40,46 @@ import java.util.Date;
  *
  */
 
-public class GPSInfo extends AppCompatActivity implements LocationListener{
+public class GPSInfo extends AppCompatActivity {
 
-    private TextView valueLon;
-    private TextView valueLat;
-    private TextView valueAltitude;
-    private TextView valueSpeed;
-    private TextView valueAccuracy;
-    private TextView valueNumSatellites;
-    private TextView gpsFixLabel;
-    private TextView warningText;
-    private Switch displayGPS;
-    private LinearLayout gpsData;
-    private RadioButton unitMeter;
-    private SharedPreferences settings;
+
+
     private Location lastLocation=null;
-    private LinearLayout permissionWarning;
+    private SharedPreferences settings;
     private String   otherText;
-    private BroadcastReceiver gpsStatus;
-    private LinearLayout notCurrent;
-    private TextView lastTime;
+    private ActivityGpxinfoBinding binding;
+    private GpsManager gpsManager;
 
     private static final double METER_TO_FOOT = 3.2808399;
     private static final double METER_TO_MPH  = 3.6/1.609344;
     private static final double METER_TO_KMH  = 3.6;
     private static final String PREF_MAIN     = "main";
-    private static final String PREF_S_UNIT_METER = "unitmeter";
+    private static final String PREF_S_UNIT_METER = "unit_meter";
 
-    private LocationManager locationManager;
 
     /**
      * No warning message is displayed
      */
-    private static final int ST_OK=0;
+    public static final int ST_OK=0;
 
 
     /**
      * Status displays a message that the GPS is disabled
      */
 
-    private static final int ST_DISABLED=2;
+    public  static final int ST_DISABLED=2;
 
     /**
      * Status displays a message that the GPS is unavailable
      */
 
-    private static final int ST_UNAVAILABLE=3;
+    public  static final int ST_UNAVAILABLE=3;
 
     /**
      * Status displays a message that the GPS is temp unavailable
      */
 
-    private static final int ST_TEMP_UNAVAILABLE=4;
+    public  static final int ST_TEMP_UNAVAILABLE=4;
 
     /**
      * Initialize GUI
@@ -106,30 +90,18 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gpxinfo);
-        valueLon             = (TextView)findViewById(R.id.valueLon);
-        valueLat             = (TextView) findViewById(R.id.valueLat);
-        valueAltitude        = (TextView) findViewById(R.id.valueAltitude);
-        valueSpeed           = (TextView) findViewById(R.id.valueSpeed);
-        valueAccuracy        = (TextView) findViewById(R.id.valueAccuracy);
-        gpsData              = (LinearLayout) findViewById(R.id.gpsData);
-        valueNumSatellites   = (TextView) findViewById(R.id.valueNumSatellites);
-        warningText          = (TextView) findViewById(R.id.warningText);
-        displayGPS           = (Switch) findViewById(R.id.displayGPS);
-        unitMeter            = (RadioButton) findViewById(R.id.unitMeter);
-        gpsFixLabel          = (TextView) findViewById(R.id.gpsFixLabel);
-        permissionWarning    = (LinearLayout) findViewById(R.id.permissionWarning);
-        RadioButton unitFoot = (RadioButton) findViewById(R.id.unitFoot);
-        notCurrent           = (LinearLayout) findViewById(R.id.notCurrent);
-        lastTime             = (TextView) findViewById(R.id.lastTime);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        binding=DataBindingUtil.setContentView(this,R.layout.activity_gpxinfo );
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
-        gpsData.setVisibility(View.GONE);
-        gpsFixLabel.setVisibility(View.GONE);
-        notCurrent.setVisibility(View.GONE);
+        binding.gpsData.setVisibility(View.GONE);
+        binding.gpsFixLabel.setVisibility(View.GONE);
 
+        showNotActual(false);
         displayPermissionWarning(false);
 
         settings = getSharedPreferences(PREF_MAIN, 0);
@@ -137,34 +109,36 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
         boolean lUnitMeter = settings.getBoolean(PREF_S_UNIT_METER, true);
 
         if(lUnitMeter) {
-            unitMeter.toggle();
+            binding.unitMeter.toggle();
         } else {
-            unitFoot.toggle();
+            binding. unitFoot.toggle();
         }
 
 
         hideWarning();
 
-        gpsStatus = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
+        final GPSInfo lThis=this;
 
-                if (intent.getAction().matches("android.location.PROVIDERS_CHANGED")) {
-                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                        setStatus(ST_OK);
-                    } else {
-                        setStatus(ST_DISABLED);
-                    }                }
+        gpsManager=new GpsManager(this) {
+            @Override
+            protected void setStatus(int pStatus) {
+                lThis.setStatus(pStatus);
+            }
+
+            @Override
+            public void onLocationChanged(Location pLocation) {
+                setLocation(pLocation);
             }
         };
 
 
-        displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+
+        binding.displayGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 toggleDisplayGPS();
             }
         });
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 23) {
             runtimePermission();
         } else {
@@ -173,24 +147,24 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
         enableStatusListener();
     }
 
-    public void gotoMaps()
+    private void gotoMaps()
     {
         if(lastLocation == null){
             toast(R.string.location_unknown);
             return;
         }
-        Uri lLocationUri=Uri.parse("geo:"+String.valueOf(lastLocation.getLatitude())+","+String.valueOf(lastLocation.getLongitude()));
+        String lLocation=String.valueOf(lastLocation.getLatitude())+","+String.valueOf(lastLocation.getLongitude());
+        Uri lLocationUri=Uri.parse("geo:"+lLocation+"?q="+lLocation);
         Intent lMap=new Intent(Intent.ACTION_VIEW,lLocationUri);
         lMap.setPackage("com.google.android.apps.maps");
         if(lMap.resolveActivity(getPackageManager())!= null){
             startActivity(lMap);
         } else {
             toast(R.string.googleMapNotFound);
-            return;
         }
     }
 
-    public void shareData()
+    private void shareData()
     {
         if(lastLocation==null){
             toast(R.string.location_unknown);
@@ -213,10 +187,10 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
 
     /**
      * Open a new activity that displays help information.
-     * This page is activated by clikking the "?"  symbol.
+     * This page is activated by clicking the "?"  symbol.
      *
      */
-    public void openHelp(){
+    private void openHelp(){
         try {
             Intent lHelpIntent = new Intent(this, HelpActivity.class);
             startActivity(lHelpIntent);
@@ -246,28 +220,30 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
         return true;
     }
 
+    //Todo can also call gpsManager don't neet gateway
+
     private void enableStatusListener()
     {
-        registerReceiver(gpsStatus, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+        gpsManager.enableStatusListener();
     }
 
     private void disableStatusListener()
     {
-        unregisterReceiver(gpsStatus);
+        gpsManager.disableStatusListener();
     }
 
     private void displayPermissionWarning(boolean pFlag)
     {
         if(pFlag) {
-            permissionWarning.setVisibility(View.VISIBLE);
+            binding.permissionWarning.setVisibility(View.VISIBLE);
         }else {
-            permissionWarning.setVisibility(View.GONE);
+            binding.permissionWarning.setVisibility(View.GONE);
         }
     }
 
-    private void setStatus(int p_code)
+    private void setStatus(int pCode)
     {
-        switch(p_code){
+        switch(pCode){
             case ST_OK:
                 hideWarning();
                 break;
@@ -289,19 +265,19 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
 
 
 
-    @RequiresApi(23)
-    private boolean hasRuntimeGPSPermission()
+
+    private boolean hasNoRuntimeGPSPermission()
     {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED;
     }
 
     /**
      * For API >23, check for runtime permission.
      *
      */
-    @RequiresApi(23)
+
     private void runtimePermission(){
-        if(!hasRuntimeGPSPermission()){
+        if(hasNoRuntimeGPSPermission()){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
         } else {
             setupStatusListener();
@@ -309,7 +285,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
 
     }
 
-    @RequiresApi(23)
+
     public void askPermission(View pButton){
         runtimePermission();
     }
@@ -321,6 +297,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      * @param permissions   Information over permission that are granted or refused.
      * @param grantResults  Information over grant result.
      */
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             setupStatusListener();
@@ -339,7 +316,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      * @throws SecurityException When the app has not runtime rights to use the location service.
      */
     @RequiresApi(24)
-    private void initGNSS() throws SecurityException{
+    private void initGNSS() {
         GnssStatus.Callback lListener=new GnssStatus.Callback(){
             public void onFirstFix(int pTtffMillis) {
                 gpsFixed();
@@ -352,7 +329,9 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
                 gpsFixed();
             }
         };
-        locationManager.registerGnssStatusCallback(lListener);
+        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) {
+            gpsManager.getLocationManager().registerGnssStatusCallback(lListener);
+        }
     }
 
     /**
@@ -362,12 +341,12 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      * @param pNum Number of satellites used in the fix.
      */
     private void numberOfSatellites(int pNum){
-        valueNumSatellites.setText(String.valueOf(pNum));
+        binding.valueNumSatellites.setText(String.valueOf(pNum));
     }
 
     /**
      * Initialize the GPS status listener.
-     * Depending on the api level, the GNSS listener is used (API>=24) or else the GPSStatus is used
+     * Depending on the api level, the GNSS listener is used (API>=24) or else the GPSStatusCallback is used
      * This listener checks when GPS started and when there is a GPS Fix
      */
     private void setupStatusListener()
@@ -385,14 +364,14 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
     }
 
     /**
-     * GPSStatus returns a list of satellites. GetFixedSatellites counts
+     * GPSStatusCallback returns a list of satellites. GetFixedSatellites counts
      * how many of those satellites are used in the fix.
      * This function is only used when the depreciated GpsStatus is used (<API 23)
      *
      * @param pSatellites  List of satellites used in this function
-     * @return    number of satellites in pStatellites
+     * @return    number of satellites in pSatellites
      */
-    @SuppressWarnings( "deprecation" )
+
     private int getFixedSatellites(Iterable<GpsSatellite> pSatellites)
     {
         int lFixed=0;
@@ -411,8 +390,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      *
      * @throws SecurityException When the app has not runtime rights to use the location service.
      */
-    @SuppressWarnings( "deprecation" )
-    private void initGPSStatus() throws SecurityException{
+    private void initGPSStatus() {
         GpsStatus.Listener lListener=new GpsStatus.Listener(){
 
             public void onGpsStatusChanged(int pEvent){
@@ -425,7 +403,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
                         break;
                     case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
                         try {
-                            GpsStatus lStatus = locationManager.getGpsStatus(null);
+                            GpsStatus lStatus = gpsManager.getLocationManager().getGpsStatus(null);
                             numberOfSatellites(getFixedSatellites(lStatus.getSatellites()));
                         }catch(SecurityException e){
                             //Do nothing from now
@@ -437,7 +415,9 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
             }
 
         } ;
-        locationManager.addGpsStatusListener(lListener);
+        if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) {
+            gpsManager.getLocationManager().addGpsStatusListener(lListener);
+        }
 
     }
 
@@ -473,8 +453,10 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
     private void copyToClipboard(int pLabel,String pText)
     {
         ClipboardManager lClipboard=(ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData lData=ClipData.newPlainText(getResources().getString(pLabel),pText);
-        lClipboard.setPrimaryClip(lData);
+        if(lClipboard != null) {
+            ClipData lData = ClipData.newPlainText(getResources().getString(pLabel), pText);
+            lClipboard.setPrimaryClip(lData);
+        }
     }
 
 
@@ -516,15 +498,13 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      * * TODO Check Exception handling callers
      */
 
-    private void startGPS() throws SecurityException
-    {
-        gpsData.setVisibility(View.VISIBLE);
-        try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
-
-        } catch(SecurityException e){
-            displayPermissionWarning(true);
-        } catch (Exception e) {
+    private void startGPS() {
+        binding.gpsData.setVisibility(View.VISIBLE);
+        try{
+            if (gpsManager.enableUpdates()){
+                displayPermissionWarning(true);
+            }
+        } catch (Throwable e) {
             Toast lToast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
             lToast.show();
         }
@@ -539,10 +519,21 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
     public void toggleUnits(View pRadio)
     {
         SharedPreferences.Editor lEditor=settings.edit();
-        lEditor.putBoolean(PREF_S_UNIT_METER,unitMeter.isChecked());
+        lEditor.putBoolean(PREF_S_UNIT_METER,binding.unitMeter.isChecked());
         lEditor.apply();
         if(lastLocation != null){
             setLocation(lastLocation);
+        }
+    }
+
+    private void showNotActual(boolean pFlag)
+    {
+        if(pFlag){
+            String lText=getResources().getString(R.string.not_current)+DateFormat.getTimeFormat(this).format(new Date());
+            binding.notCurrent.setText(lText);
+            binding.notCurrent.setVisibility(View.VISIBLE);
+        } else {
+            binding.notCurrent.setVisibility(View.GONE);
         }
     }
 
@@ -552,21 +543,19 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      * when turned on the LocationListener is turned on and receives location updates
      */
     private void toggleDisplayGPS() {
-        if (displayGPS.isChecked()) {
-            notCurrent.setVisibility(View.GONE);
+        if (binding.displayGPS.isChecked()) {
+            showNotActual(false);
             startGPS();
         } else {
             if(lastLocation != null){
-                notCurrent.setVisibility(View.VISIBLE);
-                String lDate= DateFormat.getTimeFormat(this).format(new Date());
-                lastTime.setText(lDate);
+                showNotActual(true);
             } else {
-                notCurrent.setVisibility(View.GONE);
-                gpsData.setVisibility(View.GONE);
-                gpsFixLabel.setVisibility(View.GONE);
+                showNotActual(false);
+                binding.gpsData.setVisibility(View.GONE);
+                binding.gpsFixLabel.setVisibility(View.GONE);
             }
+            gpsManager.disableUpdates();
 
-            locationManager.removeUpdates(this);
         }
     }
 
@@ -577,8 +566,8 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      */
     private void displayWarning(int pWarning)
     {
-        warningText.setText(getResources().getString(pWarning));
-        warningText.setVisibility(View.VISIBLE);
+        binding.warningText.setText(getResources().getString(pWarning));
+        binding.warningText.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -587,7 +576,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
 
     private void hideWarning()
     {
-        warningText.setVisibility(View.GONE);
+        binding.warningText.setVisibility(View.GONE);
     }
 
     private String makeText(int pLabel,String pValue){
@@ -601,12 +590,12 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      */
     private void setLocation(@NonNull Location pLocation)
     {
-        valueLon.setText(String.valueOf(pLocation.getLongitude()));
-        valueLat.setText(String.valueOf(pLocation.getLatitude()));
+        binding.valueLon.setText(String.valueOf(pLocation.getLongitude()));
+        binding.valueLat.setText(String.valueOf(pLocation.getLatitude()));
         String lAltitude;
         String lAccuracy;
         String lSpeed;
-        if(unitMeter.isChecked()){
+        if(binding.unitMeter.isChecked()){
             lAltitude = getResources().getString(R.string.valueMeter,pLocation.getAltitude());
             lAccuracy = getResources().getString(R.string.valueMeter,pLocation.getAccuracy());
             lSpeed    = getResources().getString(R.string.valueKmh,pLocation.getSpeed()* METER_TO_KMH);
@@ -615,14 +604,14 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
             lAccuracy=getResources().getString(R.string.valueFoot,pLocation.getAccuracy() * METER_TO_FOOT);
             lSpeed    = getResources().getString(R.string.valueMph,pLocation.getSpeed() * METER_TO_MPH);
         }
-        valueAltitude.setText(lAltitude);
-        valueSpeed.setText(lSpeed);
-        valueAccuracy.setText(lAccuracy);
+        binding.valueAltitude.setText(lAltitude);
+        binding.valueSpeed.setText(lSpeed);
+        binding.valueAccuracy.setText(lAccuracy);
         lastLocation=pLocation;
         otherText=makeText(R.string.Speed,lSpeed)
                  +makeText(R.string.altitude,lAltitude)
                  +makeText(R.string.accuracy,lAccuracy)
-                 +makeText(R.string.numSatellites,valueNumSatellites.getText().toString());
+                 +makeText(R.string.numSatellites,binding.valueNumSatellites.getText().toString());
     }
 
     /**
@@ -630,61 +619,15 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
      */
     private void gpsFixingStarted()
     {
-        valueNumSatellites.setText("-");
-        gpsFixLabel.setVisibility(View.VISIBLE);
+        binding.valueNumSatellites.setText("-");
+        binding.gpsFixLabel.setVisibility(View.VISIBLE);
     }
 
     private void gpsFixed()
     {
-        gpsFixLabel.setVisibility(View.GONE);
+        binding.gpsFixLabel.setVisibility(View.GONE);
     }
 
-
-    /**
-     * When  the location is changed this callback function is called.
-     *
-     * @param pLocation Current location
-     */
-    @Override
-    public void onLocationChanged(@NonNull Location pLocation)
-    {
-        setLocation(pLocation);
-    }
-
-
-
-    /**
-     * When status of the GPS is changed.
-     * When the  GPS is unavailable , a message is displayed.
-     * Also the number of satellites
-     *
-     * @param pProvider   The status is change for this type of provider
-     * @param pStatus     Status (Availability)
-     * @param pExtra      Extra information(used for getting the number of satellites) .
-     */
-
-    @Override
-    public void onStatusChanged(String pProvider,int pStatus,Bundle pExtra)
-    {
-        if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
-            switch(pStatus){
-
-                case LocationProvider.TEMPORARILY_UNAVAILABLE:
-                    setStatus(ST_TEMP_UNAVAILABLE);
-                    break;
-
-                case LocationProvider.OUT_OF_SERVICE:
-                    setStatus(ST_UNAVAILABLE);
-                    break;
-
-                case LocationProvider.AVAILABLE:
-                    setStatus(ST_OK);
-                    break;
-                default:
-                    //do nothing
-            }
-        }
-    }
 
 
     /**
@@ -700,36 +643,6 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
         return super.onCreateOptionsMenu(pMenu);
     }
 
-    /**
-     * When the GPS is disabled this callback is called. In the method a warning is displayed that the
-     * GPS is disabled
-     *
-     * @param pProvider Which location provider is disabled
-     */
-    @Override
-    public void onProviderDisabled(String pProvider)
-    {
-        if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
-            displayWarning(R.string.warningGPSDisabled);
-            setStatus(ST_DISABLED);
-        }
-    }
-
-    /**
-     * When the GPS is enabled this callback is called. In this method the warning that the GPS is disabled is hidden
-     *
-     * @param pProvider Which location provider is enabled.
-     */
-    @Override
-    public void onProviderEnabled(String pProvider) {
-        if(LocationManager.GPS_PROVIDER.equals(pProvider)) {
-            setStatus(ST_OK);
-        }
-
-    }
-
-
-
 
     /**
      * Disable GPS when the activity pauses
@@ -739,7 +652,7 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
     protected void onPause()
     {
         super.onPause();
-        locationManager.removeUpdates(this);
+        gpsManager.disableUpdates();
         disableStatusListener();
     }
 
@@ -752,18 +665,18 @@ public class GPSInfo extends AppCompatActivity implements LocationListener{
         super.onResume();
         enableStatusListener();
         if(Build.VERSION.SDK_INT >= 23) {
-            if(!hasRuntimeGPSPermission()){
+            if(hasNoRuntimeGPSPermission()){
                 displayPermissionWarning(true);
             }
         }
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (gpsManager.getLocationManager().isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             setStatus(ST_OK);
         } else {
             setStatus(ST_DISABLED);
         }
 
-        if (displayGPS.isChecked()){
+        if (binding.displayGPS.isChecked()){
 
             startGPS();
         }

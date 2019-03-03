@@ -4,7 +4,7 @@
     >
     <item
         android:id="@+id/map"
-        android:title="@string/share"
+        android:title="@string/googleMap"
         android:icon="@drawable/map"
         app:showAsAction="always"
         />

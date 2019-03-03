@@ -9,7 +9,7 @@
         android:orientation="vertical"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp"
-        tools:context="org.elaya.gpxpoint.HelpActivity">
+        tools:context="org.elaya.gac.HelpActivity">
 
         <Button
             android:id="@+id/button2"

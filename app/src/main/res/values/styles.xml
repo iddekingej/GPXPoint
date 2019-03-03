@@ -10,11 +10,16 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/windowBackground</item>
+        <item name="android:textViewStyle">@style/defaultTextViewStyle</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name='defaultTextViewStyle' parent='android:Widget.TextView'>
+        <item name='android:textSize'>19sp</item>
+    </style>
 
     <!-- Style of Lon lat display -->
     <style name="lonLat" parent="android:Widget.TextView">
@@ -46,6 +51,7 @@
 
     <style name="sectionLabel" parent="android:Widget.TextView">
         <item name="android:textColor">@color/sectionTitleLine</item>
+        <item name="android:textSize">21sp</item>
         <item name="android:padding">3dp</item>
         <item name="android:textStyle">italic</item>
     </style>
